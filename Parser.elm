@@ -92,15 +92,15 @@ some p = (::) <$> p <*> many p
         b = concat <| map (\(_,ys) -> q ys) a
     in zipWith (\(f, ys) (b, zs) -> (f b, zs)) a b
 
-{- Variant of `<$>` that ignores the result of the parser -}
+{-| Variant of `<$>` that ignores the result of the parser -}
 (<$) : b -> Parser s a -> Parser s b
 f <$ p = always f <$> p
 
-{- Variant of `<*>` that ignores the result of the parser at the right -}
+{-| Variant of `<*>` that ignores the result of the parser at the right -}
 (<*) : Parser s a -> Parser s b -> Parser s a
 p <* q = always <$> p <*> q
 
-{- Variant of `<*>` that ignores the result of the parser at the right -}
+{-| Variant of `<*>` that ignores the result of the parser at the right -}
 (*>) : Parser s a -> Parser s b -> Parser s b
 p *> q = flip always <$> p <*> q
 
