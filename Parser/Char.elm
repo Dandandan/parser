@@ -2,7 +2,7 @@ module Parser.Char where
 
 {-| Some parsers
 
-@docs digit, natural, integer, isSpace
+@docs digit, natural, integer, parenthesized, bracketed, braced
 
 -}
 
@@ -21,11 +21,14 @@ natural = foldl (\b a -> a * 10 + b) 0 <$> some digit
 integer : Parser Char Int
 integer = (always (\x -> -x) <$> (symbol '-')) `option` id  <*> natural
 
-parenthesised : Parser Char a -> Parser Char a
-parenthesised p = symbol '(' *> p <*symbol ')'
+{-| Parse a parser between parethesis `(` and `)`-}
+parenthesized : Parser Char a -> Parser Char a
+parenthesized p = symbol '(' *> p <*symbol ')'
 
+{-| Parses a parser between brackets `[` and `]` -}
 bracketed : Parser Char a -> Parser Char a
 bracketed p = symbol '[' *> p <* symbol ']'
 
+{-| Parses a parser between braces `{` and `}`-}
 braced : Parser Char a -> Parser Char a
 braced p = symbol '{' *>  p <* symbol '}'
