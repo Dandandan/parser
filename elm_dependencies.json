@@ -1,0 +1,9 @@
+{ "version": "0.0.1"
+, "summary": "Simple parser combinator library"
+, "description": "Simple parser combinator library"
+, "license": "BSD3"
+, "repository": "https://github.com/evancz/automaton.git"
+, "exposed-modules": ["Automaton"]
+, "elm-version": "0.12.1"
+, "dependencies":{}
+}
