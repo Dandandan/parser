@@ -43,11 +43,11 @@ empty : Parser s a
 empty = always []
 
 {-| Parses a symbol -}
-symbol : comparable -> Parser comparable comparable
-symbol x = satisfy (\r -> r == x)
+symbol : a -> Parser a a
+symbol = satisfy . (==)
 
 {-| Parses a token of symbols -}
-token : [comparable] -> Parser comparable [comparable]
+token : [a] -> Parser a [a]
 token xs     =
     case xs of
         []      -> succeed []
@@ -100,7 +100,7 @@ f <$ p = always f <$> p
 (<*) : Parser s a -> Parser s b -> Parser s a
 p <* q = always <$> p <*> q
 
-{-| Variant of `<*>` that ignores the result of the parser at the right -}
+{-| Variant of `<*>` that ignores the result of the parser at the left -}
 (*>) : Parser s a -> Parser s b -> Parser s b
 p *> q = flip always <$> p <*> q
 

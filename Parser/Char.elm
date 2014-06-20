@@ -21,6 +21,14 @@ natural = foldl (\b a -> a * 10 + b) 0 <$> some digit
 integer : Parser Char Int
 integer = (always (\x -> -x) <$> (symbol '-')) `option` id  <*> natural
 
+{-| Parse a upper case character -}
+upper : Parser Char Char
+upper = satisfy Char.isUpper
+
+{-| Parse a lower case character -}
+lower : Parser Char Char
+lower = satisfy Char.isLower
+
 {-| Parse a parser between parethesis `(` and `)`-}
 parenthesized : Parser Char a -> Parser Char a
 parenthesized p = symbol '(' *> p <*symbol ')'
