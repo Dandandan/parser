@@ -19,7 +19,7 @@ natural = foldl (\b a -> a * 10 + b) 0 <$> some digit
 
 {-| Parse an integer -}
 integer : Parser Char Int
-integer = (always (\x -> -x) <$> (symbol '-')) `option` id  <*> natural
+integer = (always (\x -> -x) <$> (symbol '-')) `optional` id  <*> natural
 
 {-| Parse a upper case character -}
 upper : Parser Char Char

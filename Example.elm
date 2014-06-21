@@ -13,7 +13,7 @@ parses =
     , parseString (token (String.toList "123")) "123" |> show
     , parseString (many (symbol '1') <* end) "111" |> show
     , parseString (integer) "-100" |> show
-    , parseString (Date <$> p <*> p <*> integer) "11/12/2012" |> show
+    , parseString (Date `Parser.map` p `Parser.and` p `Parser.and` integer) "11/12/2012" |> show
     ]
 
 
