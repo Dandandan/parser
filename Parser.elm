@@ -43,7 +43,7 @@ satisfy p xs =
     (x::xs') -> if p x then [(x, xs')] else []
 
 {-| Parser that always fails -}
-empty : Parser i r
+empty : Parser a r
 empty = always []
 
 {-| Parses a symbol -}
@@ -131,8 +131,11 @@ end xs = case xs of
     _  -> []
 
 infixl 4 <*>
+infixl 4 `and`
 infixr 3 <|>
+infixr 3 `or`
 infixl 4 <$>
+infixl 4 `map`
 infixl 4 <$
 infixl 4 <*
 infixl 4 *>
