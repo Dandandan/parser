@@ -29,7 +29,7 @@ upper = satisfy Char.isUpper
 lower : Parser Char Char
 lower = satisfy Char.isLower
 
-{-| Parse a parser between parethesis `(` and `)`-}
+{-| Parse a parser between parentheses `(` and `)`-}
 parenthesized : Parser Char r -> Parser Char r
 parenthesized p = symbol '(' *> p <*symbol ')'
 
