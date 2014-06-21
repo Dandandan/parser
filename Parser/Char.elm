@@ -30,13 +30,13 @@ lower : Parser Char Char
 lower = satisfy Char.isLower
 
 {-| Parse a parser between parethesis `(` and `)`-}
-parenthesized : Parser Char a -> Parser Char a
+parenthesized : Parser Char r -> Parser Char r
 parenthesized p = symbol '(' *> p <*symbol ')'
 
 {-| Parses a parser between brackets `[` and `]` -}
-bracketed : Parser Char a -> Parser Char a
+bracketed : Parser Char r -> Parser Char r
 bracketed p = symbol '[' *> p <* symbol ']'
 
 {-| Parses a parser between braces `{` and `}`-}
-braced : Parser Char a -> Parser Char a
+braced : Parser Char r -> Parser Char r
 braced p = symbol '{' *>  p <* symbol '}'

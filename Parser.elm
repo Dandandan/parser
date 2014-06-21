@@ -7,32 +7,32 @@ module Parser where
 #Core functions
 @docs map, or, and
 
-#Core functions (infix operators)
-@docs (<*>), (<$>), (<|>), (<*), (*>), (<$)
-
 #Combinators
 @docs succeed, satisfy, empty, symbol, token, choice, optional, many, some, seperatedBy, end
+
+#Core functions (infix operators)
+@docs (<*>), (<$>), (<|>), (<*), (*>), (<$)
 -}
 
 import String
 import Either (..)
 import List
 
-type Parser a b = [a] -> [(b, [a])]
+type Parser a r = [a] -> [(r, [a])]
 
 {-| Parse a list using a parser -}
-parse : Parser a b -> [a] -> Either String b
+parse : Parser a r -> [a] -> Either String r
 parse p xs =
   case p xs of
     ((e, _)::_) -> Right e
     _           -> Left "Parse Error"
 
-{-| Parse a `String` using a Char parser  -}
-parseString : Parser Char b -> String -> Either String b
+{-| Parse a `String` using a `Char` parser  -}
+parseString : Parser Char r -> String -> Either String r
 parseString p = parse p . String.toList
 
-{-| Parser that always succeeds -}
-succeed : b -> Parser a b
+{-| Parser that always succeeds without consuming input -}
+succeed : r -> Parser a r
 succeed b xs = [(b,xs)]
 
 {-| Parser that satisfies a given predicate -}
@@ -43,7 +43,7 @@ satisfy p xs =
     (x::xs') -> if p x then [(x, xs')] else []
 
 {-| Parser that always fails -}
-empty : Parser s a
+empty : Parser i r
 empty = always []
 
 {-| Parses a symbol -}
@@ -58,42 +58,42 @@ token xs     =
         (x::xs) -> (::) <$> symbol x <*> token xs
 
 {-| Combine a list of parsers -}
-choice : [Parser s a] -> Parser s a
+choice : [Parser a r] -> Parser a r
 choice = foldr (<|>) empty
 
 {-| Parses an optional element -}
-optional : Parser s a -> a -> Parser s a
+optional : Parser a r -> r -> Parser a r
 optional p x = p <|> succeed x
 
 {-| Parses zero or more occurences of a parser -}
-many : Parser s a -> Parser s [a]
+many : Parser a r -> Parser a [r]
 many p xs = --(::) <$> p <*> many p <|> succeed [] (lazy version)
     case p xs of
         [] -> succeed [] xs
         _ -> ((::) <$> p <*> many p) xs
 
 {-| Parses one or more occurences of a parser -}
-some : Parser s a -> Parser s [a]
+some : Parser a r -> Parser a [r]
 some p = (::) <$> p <*> many p
 
 {-| Map a function over the result of the parser -}
-map : (b -> c) -> Parser a b -> Parser a c
+map : (r -> s) -> Parser a r -> Parser a s
 map = (<$>)
 
 {-| Choice between two parsers -}
-or : Parser a b -> Parser a b -> Parser a b
+or : Parser a r -> Parser a r -> Parser a r
 or = (<|>)
 
 {-| Sequence two parsers -}
-and : Parser a (b -> c) -> Parser a b -> Parser a c
+and : Parser a (r -> s) -> Parser a r -> Parser a s
 and = (<*>)
 
 {-| Choice between two parsers -}
-(<|>) : Parser a b -> Parser a b -> Parser a b
+(<|>) : Parser a r -> Parser a r -> Parser a r
 (<|>) p q xs = p xs ++ q xs
 
 {-| Map a function over the result of the parser -}
-(<$>) : (b -> c) -> Parser a b -> Parser a c
+(<$>) : (r -> s) -> Parser a r -> Parser a s
 (<$>) f p = List.map (\(r,ys) -> (f r, ys)) . p
 
 {-| Sequence two parsers 
@@ -102,30 +102,30 @@ and = (<*>)
     Date <$> year <*> month <*> day
 
 -}
-(<*>) : Parser a (b -> c) -> Parser a b -> Parser a c
+(<*>) : Parser a (r -> s) -> Parser a r -> Parser a s
 (<*>) p q xs = 
     let a = p xs
         b = concat <| List.map (\(_,ys) -> q ys) a
     in zipWith (\(f, ys) (b, zs) -> (f b, zs)) a b
 
 {-| Variant of `<$>` that ignores the result of the parser -}
-(<$) : b -> Parser s a -> Parser s b
+(<$) : r -> Parser a b -> Parser a r
 f <$ p = always f <$> p
 
 {-| Variant of `<*>` that ignores the result of the parser at the right -}
-(<*) : Parser s a -> Parser s b -> Parser s a
+(<*) : Parser a r -> Parser a s -> Parser a r
 p <* q = always <$> p <*> q
 
 {-| Variant of `<*>` that ignores the result of the parser at the left -}
-(*>) : Parser s a -> Parser s b -> Parser s b
+(*>) : Parser a s -> Parser a r -> Parser a r
 p *> q = flip always <$> p <*> q
 
 {-| Parses a sequence of the first parser, seperated by the second parser -} 
-seperatedBy : Parser s a -> Parser s b -> Parser s [a]
+seperatedBy : Parser a r -> Parser a s -> Parser a [r]
 seperatedBy p s = (::) <$> p <*> many (s *> p)
 
 {-| Succeeds when input is empty -}
-end : Parser s ()
+end : Parser a ()
 end xs = case xs of
     [] -> succeed () xs
     _  -> []
