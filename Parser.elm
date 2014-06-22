@@ -1,6 +1,7 @@
 module Parser where
 
 {-| A simple parser combinator library.
+
 #Running the parser
 @docs parse, parseString
 
@@ -55,74 +56,81 @@ token : [a] -> Parser a [a]
 token xs     =
     case xs of
         []      -> succeed []
-        (x::xs) -> (::) <$> symbol x <*> token xs
+        (x::xs) -> (::) `map` symbol x `and` token xs
 
 {-| Combine a list of parsers -}
 choice : [Parser a r] -> Parser a r
-choice = foldr (<|>) empty
+choice = foldr or empty
 
 {-| Parses an optional element -}
 optional : Parser a r -> r -> Parser a r
-optional p x = p <|> succeed x
+optional p x = p `or` succeed x
 
 {-| Parses zero or more occurences of a parser -}
 many : Parser a r -> Parser a [r]
 many p xs = --(::) <$> p <*> many p <|> succeed [] (lazy version)
     case p xs of
         [] -> succeed [] xs
-        _ -> ((::) <$> p <*> many p) xs
+        _ -> ((::) `map` p `and` many p) xs
 
 {-| Parses one or more occurences of a parser -}
 some : Parser a r -> Parser a [r]
-some p = (::) <$> p <*> many p
+some p = (::) `map` p `and` many p
 
-{-| Map a function over the result of the parser -}
+{-| Map a function over the result of the parser 
+
+      count = length `map` (many digit)
+
+-}
 map : (r -> s) -> Parser a r -> Parser a s
-map = (<$>)
+map f p = List.map (\(r,ys) -> (f r, ys)) . p
 
-{-| Choice between two parsers -}
+{-| Choice between two parsers
+
+      oneOrTwo = symbol '1' `or` symbol '2'
+-}
 or : Parser a r -> Parser a r -> Parser a r
-or = (<|>)
-
-{-| Sequence two parsers -}
-and : Parser a (r -> s) -> Parser a r -> Parser a s
-and = (<*>)
-
-{-| Choice between two parsers -}
-(<|>) : Parser a r -> Parser a r -> Parser a r
-(<|>) p q xs = p xs ++ q xs
-
-{-| Map a function over the result of the parser -}
-(<$>) : (r -> s) -> Parser a r -> Parser a s
-(<$>) f p = List.map (\(r,ys) -> (f r, ys)) . p
+or p q xs = p xs ++ q xs
 
 {-| Sequence two parsers 
 
     data Date = Date Int Int Int
-    Date <$> year <*> month <*> day
-
+    map Date year `and` month `and` day
 -}
-(<*>) : Parser a (r -> s) -> Parser a r -> Parser a s
-(<*>) p q xs = 
+and : Parser a (r -> s) -> Parser a r -> Parser a s
+and p q xs =
     let a = p xs
         b = concat <| List.map (\(_,ys) -> q ys) a
     in zipWith (\(f, ys) (b, zs) -> (f b, zs)) a b
+{-| Choice between two parsers -}
+(<|>) : Parser a r -> Parser a r -> Parser a r
+(<|>) = or
+
+{-| Map a function over the result of the parser -}
+(<$>) : (r -> s) -> Parser a r -> Parser a s
+(<$>) = map
+
+{-| Sequence two parsers
+
+-}
+(<*>) : Parser a (r -> s) -> Parser a r -> Parser a s
+(<*>) = and
 
 {-| Variant of `<$>` that ignores the result of the parser -}
 (<$) : r -> Parser a b -> Parser a r
-f <$ p = always f <$> p
+f <$ p = always f `map` p
 
 {-| Variant of `<*>` that ignores the result of the parser at the right -}
 (<*) : Parser a r -> Parser a s -> Parser a r
-p <* q = always <$> p <*> q
+p <* q = always `map` p `and` q
 
 {-| Variant of `<*>` that ignores the result of the parser at the left -}
 (*>) : Parser a s -> Parser a r -> Parser a r
-p *> q = flip always <$> p <*> q
+p *> q = (flip always) `map` p `and` q
 
 {-| Parses a sequence of the first parser, seperated by the second parser -} 
 seperatedBy : Parser a r -> Parser a s -> Parser a [r]
-seperatedBy p s = (::) <$> p <*> many (s *> p)
+seperatedBy p s = (::) `map` p `and` many (s *> p)
 
 {-| Succeeds when input is empty -}
 end : Parser a ()
