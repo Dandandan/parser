@@ -3,10 +3,10 @@ module Parser where
 {-| A simple parser combinator library.
 
 #Running the parser
-@docs parse, parseString
+@docs parse, parseString, parser
 
 #Core functions
-@docs map, or, and
+@docs map, or, and, andThen
 
 #Combinators
 @docs succeed, satisfy, empty, expect, symbol, token, choice, optional, many, some, seperatedBy, end
@@ -19,21 +19,18 @@ import String
 import Either (..)
 import List
 
-data Result a r
-  = Succeed [(r, [a])]
-  | Expect String [a]
-  | Fail                
-
-type Parser a r = [a] -> Result a r
+type Parser a r = [a] -> [(r, [a])]
 
 {-| Parse a list using a parser -}
 parse : Parser a r -> [a] -> Either String r
 parse p xs =
   case p xs of
-    Succeed ((e, _)::_) -> Right e
-    Expect  e (x::_)    -> Left ("unexpected " ++ show x ++ ", expected " ++ e)
-    Expect  e []        -> Left ("error: " ++ e)
-    _                   -> Left "parse error"
+    ((r,_)::_) -> Right r
+    _          -> Left "parse error"
+
+{-| The parser record makes things look nicer when using command syntax -}
+parser : { andThen : Parser s a -> (a -> Parser s b) -> Parser s b }
+parser = { andThen = andThen }
 
 {-| Parse a `String` using a `Char` parser  -}
 parseString : Parser Char r -> String -> Either String r
@@ -41,22 +38,22 @@ parseString p = parse p . String.toList
 
 {-| Parser that always succeeds without consuming input -}
 succeed : r -> Parser a r
-succeed b xs = Succeed [(b, xs)]
+succeed b xs = [(b, xs)]
 
 {-| Parser that satisfies a given predicate -}
 satisfy : (a -> Bool) -> Parser a a
 satisfy p xs = 
   case xs of
-    [] -> Fail
-    (x::xs') -> if p x then Succeed [(x, xs')] else Fail
+    [] -> []
+    (x::xs') -> if p x then [(x, xs')] else []
 
 {-| Parser that always fails -}
 empty : Parser a r
-empty = always <| Fail
+empty = always []
 
 {-| Parses a symbol -}
 symbol : a -> Parser a a
-symbol x = satisfy (\s -> s == x) `expect` (show x)
+symbol x = satisfy (\s -> s == x)
 
 {-| Parses a token of symbols -}
 token : [a] -> Parser a [a]
@@ -73,20 +70,12 @@ choice = foldr or empty
 optional : Parser a r -> r -> Parser a r
 optional p x = p `or` succeed x
 
-{-| Adds a message in case parsing fails
-
-      aOrB = symbol 'a' `or` symbol 'b' `expect` "a or b"
-
--}
-expect : Parser a r -> String -> Parser a r
-expect p s = p `or` Expect s
-
 {-| Parses zero or more occurences of a parser -}
 many : Parser a r -> Parser a [r]
 many p xs = --(::) <$> p <*> many p <|> succeed [] (lazy version)
     case p xs of
-        Succeed _ -> ((::) `map` p `and` many p) xs
-        _         -> succeed [] xs
+        [] -> succeed [] xs
+        _ -> ((::) `map` p `and` many p) xs
 
 {-| Parses one or more occurences of a parser -}
 some : Parser a r -> Parser a [r]
@@ -98,37 +87,14 @@ some p = (::) `map` p `and` many p
 
 -}
 map : (r -> s) -> Parser a r -> Parser a s
-map f p = listToR . List.map (\(r,ys) -> (f r, ys)) . rToList . p
-
-rToList r =
-  case r of
-    Succeed s -> s
-    _         -> []
-
-listToR xs =
-  case xs of
-    [] -> Fail
-    _  -> Succeed xs
+map f p = List.map (\(r,ys) -> (f r, ys)) . p
 
 {-| Choice between two parsers
 
       oneOrTwo = symbol '1' `or` symbol '2'
 -}
 or : Parser a r -> Parser a r -> Parser a r
-or p q xs = 
-  case (p xs, q xs) of
-    (Succeed a, Succeed b)   -> Succeed (a ++ b)
-    (Succeed a, _)           -> Succeed a
-    (_, Succeed b)           -> Succeed b
-    (Expect a _, Expect b _) -> Expect (a ++ " or " ++ b) xs
-    (Expect a _ , _)         -> Expect a xs
-    (_, Expect b _)          -> Expect b xs
-    _                        -> Fail
-
-
-isExpect r = case r of
-    Expect _ _ -> True
-    _          -> False
+or p q xs = p xs ++ q xs
 
 {-| Sequence two parsers 
 
@@ -137,20 +103,13 @@ isExpect r = case r of
 -}
 and : Parser a (r -> s) -> Parser a r -> Parser a s
 and p q xs =
-  let a = p xs
-      a' = rToList a
-      b = List.map (\(_,ys) -> q ys) a'
-      b' = concat <| List.map rToList b
-  in
-    case (zipWith (\(f, ys) (b, zs) -> (f b, zs)) a' b') of
-      [] -> case a of
-          Expect e xs        -> Expect e xs
-          Succeed ((r,a)::_) -> 
-            case filter isExpect b of
-              Expect e es :: _  -> Expect e es
-              _                 -> Fail
-          _                     -> Fail
-      x  -> listToR x
+    concat <| List.map (\(f, ys) -> List.map (\(r, rs) -> (f r, rs)) <| q ys) (p xs)
+
+{-| Sequence two parsers, but pass the result of the first parser to the second parser.
+    This is useful for creating context sensitive parsers like XML.
+-}
+andThen : Parser s a -> (a -> Parser s b) -> Parser s b
+andThen p f xs = concat <| List.map (\(y,ys) -> f y ys) (p xs)
 
 {-| Choice between two parsers -}
 (<|>) : Parser a r -> Parser a r -> Parser a r
@@ -186,13 +145,12 @@ seperatedBy p s = (::) `map` p `and` many (s *> p)
 end : Parser a ()
 end xs = case xs of
     [] -> succeed () xs
-    _  -> Fail
+    _  -> []
 
 infixl 4 <*>
 infixl 4 `and`
 infixr 3 <|>
 infixr 3 `or`
-infixr 3 `expect`
 infixl 4 <$>
 infixl 4 `map`
 infixl 4 <$

@@ -16,8 +16,9 @@ parses =
     , parseString integer "-100" |> show |> plainText
     , parseString float "1.2154" |> show |> plainText 
     , parseString (Date `map` p `and` p `and` integer) "11/12/2012" |> show |> plainText
-    , parseString (symbol 'x' <* end) "x1231x" |> show |> plainText
+    , parseString (symbol 'x' <* end) "x2" |> show |> plainText
+      -- should fail
+    , parseString ((symbol 'x' <|> symbol 'y') `andThen` (\r -> if r == 'x' then symbol 'x'  else symbol 'y' )) "xy" |> show |> plainText
     ]
-
 
 main = flow down parses
