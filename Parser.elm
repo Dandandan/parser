@@ -9,7 +9,7 @@ module Parser where
 @docs map, or, and, andThen
 
 #Combinators
-@docs succeed, satisfy, empty, expect, symbol, token, choice, optional, many, some, seperatedBy, end
+@docs succeed, satisfy, empty, symbol, token, choice, optional, many, some, seperatedBy, end
 
 #Core functions (infix operators)
 @docs (<*>), (<$>), (<|>), (<*), (*>), (<$)
@@ -102,14 +102,14 @@ or p q xs = p xs ++ q xs
     date = Date `map` year `and` month `and` day
 -}
 and : Parser a (r -> s) -> Parser a r -> Parser a s
-and p q xs =
-    concat <| List.map (\(f, ys) -> List.map (\(r, rs) -> (f r, rs)) <| q ys) (p xs)
+and p q =
+    concat . List.map (\(f, ys) -> List.map (\(r, rs) -> (f r, rs)) <| q ys) . p
 
 {-| Sequence two parsers, but pass the result of the first parser to the second parser.
     This is useful for creating context sensitive parsers like XML.
 -}
 andThen : Parser s a -> (a -> Parser s b) -> Parser s b
-andThen p f xs = concat <| List.map (\(y,ys) -> f y ys) (p xs)
+andThen p f = concat . List.map (\(y,ys) -> f y ys) . p
 
 {-| Choice between two parsers -}
 (<|>) : Parser a r -> Parser a r -> Parser a r
