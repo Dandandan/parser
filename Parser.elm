@@ -34,7 +34,7 @@ parser = { andThen = andThen }
 
 {-| Parse a `String` using a `Char` parser  -}
 parseString : Parser Char r -> String -> Either String r
-parseString p = parse p . String.toList
+parseString p = parse p << String.toList
 
 {-| Parser that always succeeds without consuming input -}
 succeed : r -> Parser a r
@@ -87,7 +87,7 @@ some p = (::) `map` p `and` many p
 
 -}
 map : (r -> s) -> Parser a r -> Parser a s
-map f p = List.map (\(r,ys) -> (f r, ys)) . p
+map f p = List.map (\(r,ys) -> (f r, ys)) << p
 
 {-| Choice between two parsers
 
@@ -103,13 +103,13 @@ or p q xs = p xs ++ q xs
 -}
 and : Parser a (r -> s) -> Parser a r -> Parser a s
 and p q =
-    concat . List.map (\(f, ys) -> List.map (\(r, rs) -> (f r, rs)) <| q ys) . p
+    concat << List.map (\(f, ys) -> List.map (\(r, rs) -> (f r, rs)) <| q ys) << p
 
 {-| Sequence two parsers, but pass the result of the first parser to the second parser.
     This is useful for creating context sensitive parsers like XML.
 -}
 andThen : Parser s a -> (a -> Parser s b) -> Parser s b
-andThen p f = concat . List.map (\(y,ys) -> f y ys) . p
+andThen p f = concat << List.map (\(y,ys) -> f y ys) << p
 
 {-| Choice between two parsers -}
 (<|>) : Parser a r -> Parser a r -> Parser a r
