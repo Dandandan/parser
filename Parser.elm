@@ -19,12 +19,16 @@ import String
 import Either (..)
 import List
 
-type Parser a r = [a] -> [(r, [a])]
+data Parser a r = Direct ([a] -> [(r, [a])])
+
+funP : Parser a r -> [a] -> [(r, [a])]
+funP p = case p of
+           Direct f  -> f
 
 {-| Parse a list using a parser -}
 parse : Parser a r -> [a] -> Either String r
 parse p xs =
-  case p xs of
+  case funP p xs of
     ((r,_)::_) -> Right r
     _          -> Left "parse error"
 
@@ -38,18 +42,18 @@ parseString p = parse p << String.toList
 
 {-| Parser that always succeeds without consuming input -}
 succeed : r -> Parser a r
-succeed b xs = [(b, xs)]
+succeed b = Direct <| \xs -> [(b, xs)]
 
 {-| Parser that satisfies a given predicate -}
 satisfy : (a -> Bool) -> Parser a a
-satisfy p xs = 
+satisfy p = Direct <| \xs ->
   case xs of
     [] -> []
     (x::xs') -> if p x then [(x, xs')] else []
 
 {-| Parser that always fails -}
 empty : Parser a r
-empty = always []
+empty = Direct <| always []
 
 {-| Parses a symbol -}
 symbol : a -> Parser a a
@@ -72,10 +76,11 @@ optional p x = p `or` succeed x
 
 {-| Parses zero or more occurences of a parser -}
 many : Parser a r -> Parser a [r]
-many p xs = --(::) <$> p <*> many p <|> succeed [] (lazy version)
-    case p xs of
-        [] -> succeed [] xs
-        _ -> ((::) `map` p `and` many p) xs
+many p = --(::) <$> p <*> many p <|> succeed [] (lazy version)
+  Direct <| \xs ->
+    case funP p xs of
+        [] -> funP (succeed []) xs
+        _ -> funP ((::) `map` p `and` many p) xs
 
 {-| Parses one or more occurences of a parser -}
 some : Parser a r -> Parser a [r]
@@ -87,14 +92,14 @@ some p = (::) `map` p `and` many p
 
 -}
 map : (r -> s) -> Parser a r -> Parser a s
-map f p = List.map (\(r,ys) -> (f r, ys)) << p
+map f p = Direct <| \xs -> List.map (\(r,ys) -> (f r, ys)) <| funP p xs
 
 {-| Choice between two parsers
 
       oneOrTwo = symbol '1' `or` symbol '2'
 -}
 or : Parser a r -> Parser a r -> Parser a r
-or p q xs = p xs ++ q xs
+or p q = Direct <| \xs -> funP p xs ++ funP q xs
 
 {-| Sequence two parsers 
 
@@ -102,14 +107,14 @@ or p q xs = p xs ++ q xs
     date = Date `map` year `and` month `and` day
 -}
 and : Parser a (r -> s) -> Parser a r -> Parser a s
-and p q =
-    concat << List.map (\(f, ys) -> List.map (\(r, rs) -> (f r, rs)) <| q ys) << p
+and p q = Direct <| \xs -> 
+    concat << List.map (\(f, ys) -> List.map (\(r, rs) -> (f r, rs)) <| funP q ys) <| funP p xs
 
 {-| Sequence two parsers, but pass the result of the first parser to the second parser.
     This is useful for creating context sensitive parsers like XML.
 -}
 andThen : Parser s a -> (a -> Parser s b) -> Parser s b
-andThen p f = concat << List.map (\(y,ys) -> f y ys) << p
+andThen p f = Direct <| \xs -> concat << List.map (\(y,ys) -> funP (f y) ys) <| funP p xs
 
 {-| Choice between two parsers -}
 (<|>) : Parser a r -> Parser a r -> Parser a r
@@ -143,8 +148,8 @@ seperatedBy p s = (::) `map` p `and` many (s *> p)
 
 {-| Succeeds when input is empty -}
 end : Parser a ()
-end xs = case xs of
-    [] -> succeed () xs
+end = Direct <| \xs -> case xs of
+    [] -> funP (succeed ()) xs
     _  -> []
 
 infixl 4 <*>
