@@ -9,7 +9,7 @@ module Parser where
 @docs map, or, and, andThen
 
 #Combinators
-@docs succeed, satisfy, empty, symbol, token, choice, optional, many, some, seperatedBy, end
+@docs succeed, satisfy, empty, symbol, token, choice, optional, many, some, seperatedBy, end, recursively
 
 #Core functions (infix operators)
 @docs (<*>), (<$>), (<|>), (<*), (*>), (<$)
@@ -18,12 +18,18 @@ module Parser where
 import String
 import Either (..)
 import List
+import Lazy (..)
 
-data Parser a r = Direct ([a] -> [(r, [a])])
+data Parser a r = Direct ([a] -> [(r, [a])]) | Delayed (Lazy ([a] -> [(r, [a])]))
 
 funP : Parser a r -> [a] -> [(r, [a])]
 funP p = case p of
            Direct f  -> f
+           Delayed d -> force d
+
+{-| For realizing recursive grammars -}
+recursively : (() -> Parser a r) -> Parser a r
+recursively t = Delayed << lazy <| \() -> funP (t ())
 
 {-| Parse a list using a parser -}
 parse : Parser a r -> [a] -> Either String r
