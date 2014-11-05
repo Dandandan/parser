@@ -5,6 +5,6 @@
 , "repository": "https://github.com/Dandandan/parser.git"
 , "exposed-modules": ["Parser", "Parser.Char"]
 , "elm-version": "0.13"
-, "dependencies":{}
+, "dependencies":{"maxsnew/Lazy": "0.2"}
 , "aliases": {}
 }
