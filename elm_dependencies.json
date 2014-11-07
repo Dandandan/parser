@@ -1,4 +1,4 @@
-{ "version": "0.1"
+{ "version": "0.1.1"
 , "summary": "Simple parser combinator library"
 , "description": "Simple parser combinator library"
 , "license": "BSD3"

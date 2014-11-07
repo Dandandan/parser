@@ -42,7 +42,7 @@ succeed b xs = [(b, xs)]
 
 {-| Parser that satisfies a given predicate -}
 satisfy : (a -> Bool) -> Parser a a
-satisfy p xs = 
+satisfy p xs =
   case xs of
     [] -> []
     (x::xs') -> if p x then [(x, xs')] else []
@@ -81,7 +81,7 @@ many p xs = --(::) <$> p <*> many p <|> succeed [] (lazy version)
 some : Parser a r -> Parser a [r]
 some p = (::) `map` p `and` many p
 
-{-| Map a function over the result of the parser 
+{-| Map a function over the result of the parser
 
       count = length `map` many digit
 
@@ -96,7 +96,7 @@ map f p = List.map (\(r,ys) -> (f r, ys)) << p
 or : Parser a r -> Parser a r -> Parser a r
 or p q xs = p xs ++ q xs
 
-{-| Sequence two parsers 
+{-| Sequence two parsers
 
     data Date = Date Int Int Int
     date = Date `map` year `and` month `and` day
@@ -137,9 +137,9 @@ p <* q = always `map` p `and` q
 (*>) : Parser a s -> Parser a r -> Parser a r
 p *> q = flip always `map` p `and` q
 
-{-| Parses a sequence of the first parser, seperated by the second parser -} 
-seperatedBy : Parser a r -> Parser a s -> Parser a [r]
-seperatedBy p s = (::) `map` p `and` many (s *> p)
+{-| Parses a sequence of the first parser, separated by the second parser -}
+separatedBy : Parser a r -> Parser a s -> Parser a [r]
+separatedBy p s = (::) `map` p `and` many (s *> p)
 
 {-| Succeeds when input is empty -}
 end : Parser a ()
