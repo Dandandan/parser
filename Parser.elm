@@ -16,24 +16,25 @@ module Parser where
 -}
 
 import String
-import Either (..)
+import Result (..)
 import List
+import List (..)
 
-type Parser a r = [a] -> [(r, [a])]
+type alias Parser a r = List a -> List (r, List a)
 
 {-| Parse a list using a parser -}
-parse : Parser a r -> [a] -> Either String r
+parse : Parser a r -> List a -> Result String r
 parse p xs =
   case p xs of
-    ((r,_)::_) -> Right r
-    _          -> Left "parse error"
+    ((r,_)::_) -> Ok r
+    _          -> Err "parse error"
 
 {-| The parser record makes things look nicer when using command syntax -}
 parser : { andThen : Parser s a -> (a -> Parser s b) -> Parser s b }
 parser = { andThen = andThen }
 
 {-| Parse a `String` using a `Char` parser  -}
-parseString : Parser Char r -> String -> Either String r
+parseString : Parser Char r -> String -> Result String r
 parseString p = parse p << String.toList
 
 {-| Parser that always succeeds without consuming input -}
@@ -56,14 +57,14 @@ symbol : a -> Parser a a
 symbol x = satisfy (\s -> s == x)
 
 {-| Parses a token of symbols -}
-token : [a] -> Parser a [a]
+token : List a -> Parser a (List a)
 token xs     =
   case xs of
     []      -> succeed []
     (x::xs) -> (::) `map` symbol x `and` token xs
 
 {-| Combine a list of parsers -}
-choice : [Parser a r] -> Parser a r
+choice : List (Parser a r) -> Parser a r
 choice = foldr or empty
 
 {-| Parses an optional element -}
@@ -71,14 +72,14 @@ optional : Parser a r -> r -> Parser a r
 optional p x = p `or` succeed x
 
 {-| Parses zero or more occurences of a parser -}
-many : Parser a r -> Parser a [r]
+many : Parser a r -> Parser a (List r)
 many p xs = --(::) <$> p <*> many p <|> succeed [] (lazy version)
     case p xs of
         [] -> succeed [] xs
         _ -> ((::) `map` p `and` many p) xs
 
 {-| Parses one or more occurences of a parser -}
-some : Parser a r -> Parser a [r]
+some : Parser a r -> Parser a (List r)
 some p = (::) `map` p `and` many p
 
 {-| Map a function over the result of the parser
@@ -138,7 +139,7 @@ p <* q = always `map` p `and` q
 p *> q = flip always `map` p `and` q
 
 {-| Parses a sequence of the first parser, separated by the second parser -}
-separatedBy : Parser a r -> Parser a s -> Parser a [r]
+separatedBy : Parser a r -> Parser a s -> Parser a (List r)
 separatedBy p s = (::) `map` p `and` many (s *> p)
 
 {-| Succeeds when input is empty -}

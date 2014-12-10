@@ -10,6 +10,7 @@ import Char
 import Parser
 import Parser (..)
 import List
+import List (..)
 
 {-| Parse a digit -}
 digit : Parser Char Int
