@@ -26,8 +26,8 @@ type alias Parser a r = List a -> List (r, List a)
 parse : Parser a r -> List a -> Result String (List r)
 parse p xs =
   case p xs of
-    ([],_) -> Err "parse error"
-    (xs,_) -> Ok xs
+    [] -> Err "parse error"
+    xs -> Ok (List.map fst xs)
 
 {-| The parser record makes things look nicer when using command syntax -}
 parser : { andThen : Parser s a -> (a -> Parser s b) -> Parser s b }
