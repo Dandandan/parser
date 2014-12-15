@@ -22,19 +22,19 @@ import List (..)
 
 type alias Parser a r = List a -> List (r, List a)
 
-{-| Parse a list using a parser -}
-parse : Parser a r -> List a -> Result String r
+{-| Parse a list using a parser, return list of results -}
+parse : Parser a r -> List a -> Result String (List r)
 parse p xs =
   case p xs of
-    ((r,_)::_) -> Ok r
-    _          -> Err "parse error"
+    ([],_) -> Err "parse error"
+    (xs,_) -> Ok xs
 
 {-| The parser record makes things look nicer when using command syntax -}
 parser : { andThen : Parser s a -> (a -> Parser s b) -> Parser s b }
 parser = { andThen = andThen }
 
 {-| Parse a `String` using a `Char` parser  -}
-parseString : Parser Char r -> String -> Result String r
+parseString : Parser Char r -> String -> Result String (List r)
 parseString p = parse p << String.toList
 
 {-| Parser that always succeeds without consuming input -}
