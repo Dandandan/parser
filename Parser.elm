@@ -11,6 +11,9 @@ module Parser where
 #Combinators
 @docs succeed, satisfy, empty, symbol, token, choice, optional, many, some, seperatedBy, end
 
+#Writing recursive grammars
+@docs recursively
+
 #Core functions (infix operators)
 @docs (<*>), (<$>), (<|>), (<*), (*>), (<$)
 -}
@@ -19,13 +22,33 @@ import String
 import Result (..)
 import List
 import List (..)
+import Lazy (..)
 
-type alias Parser a r = List a -> List (r, List a)
+type Parser a r = Direct (List a -> List (r, List a)) | Delayed (Lazy (List a -> List (r, List a)))
+
+funP : Parser a r -> List a -> List (r, List a)
+funP p = case p of
+           Direct f  -> f
+           Delayed d -> force d
+
+{-| For realizing otherwise inexpressible recursive grammars. For
+example, while
+
+    bbbba = (symbol 'a') `or` (symbol 'b' *> bbbba)
+
+will fail at runtime with a non-termination issue, the replacement
+
+    bbbba = (symbol 'a') `or` (symbol 'b' *> recursively (\() -> bbbba))
+
+is safe.
+-}
+recursively : (() -> Parser a r) -> Parser a r
+recursively t = Delayed << lazy <| \() -> funP (t ())
 
 {-| Parse a list using a parser, return list of results -}
 parse : Parser a r -> List a -> Result String (List r)
 parse p xs =
-  case p xs of
+  case funP p xs of
     [] -> Err "parse error"
     xs -> Ok (List.map fst xs)
 
@@ -39,18 +62,18 @@ parseString p = parse p << String.toList
 
 {-| Parser that always succeeds without consuming input -}
 succeed : r -> Parser a r
-succeed b xs = [(b, xs)]
+succeed b = Direct <| \xs -> [(b, xs)]
 
 {-| Parser that satisfies a given predicate -}
 satisfy : (a -> Bool) -> Parser a a
-satisfy p xs =
+satisfy p = Direct <| \xs ->
   case xs of
     [] -> []
     (x::xs') -> if p x then [(x, xs')] else []
 
 {-| Parser that always fails -}
 empty : Parser a r
-empty = always []
+empty = Direct <| always []
 
 {-| Parses a symbol -}
 symbol : a -> Parser a a
@@ -73,10 +96,11 @@ optional p x = p `or` succeed x
 
 {-| Parses zero or more occurences of a parser -}
 many : Parser a r -> Parser a (List r)
-many p xs = --(::) <$> p <*> many p <|> succeed [] (lazy version)
-    case p xs of
-        [] -> succeed [] xs
-        _ -> ((::) `map` p `and` many p) xs
+many p = --(::) <$> p <*> many p <|> succeed [] (lazy version)
+  Direct <| \xs ->
+    case funP p xs of
+        [] -> funP (succeed []) xs
+        _ -> funP ((::) `map` p `and` many p) xs
 
 {-| Parses one or more occurences of a parser -}
 some : Parser a r -> Parser a (List r)
@@ -88,14 +112,14 @@ some p = (::) `map` p `and` many p
 
 -}
 map : (r -> s) -> Parser a r -> Parser a s
-map f p = List.map (\(r,ys) -> (f r, ys)) << p
+map f p = Direct <| \xs -> List.map (\(r,ys) -> (f r, ys)) <| funP p xs
 
 {-| Choice between two parsers
 
       oneOrTwo = symbol '1' `or` symbol '2'
 -}
 or : Parser a r -> Parser a r -> Parser a r
-or p q xs = p xs ++ q xs
+or p q = Direct <| \xs -> funP p xs ++ funP q xs
 
 {-| Sequence two parsers
 
@@ -103,14 +127,14 @@ or p q xs = p xs ++ q xs
     date = Date `map` year `and` month `and` day
 -}
 and : Parser a (r -> s) -> Parser a r -> Parser a s
-and p q =
-    concat << List.map (\(f, ys) -> List.map (\(r, rs) -> (f r, rs)) <| q ys) << p
+and p q = Direct <| \xs -> 
+    concat << List.map (\(f, ys) -> List.map (\(r, rs) -> (f r, rs)) <| funP q ys) <| funP p xs
 
 {-| Sequence two parsers, but pass the result of the first parser to the second parser.
     This is useful for creating context sensitive parsers like XML.
 -}
 andThen : Parser s a -> (a -> Parser s b) -> Parser s b
-andThen p f = concat << List.map (\(y,ys) -> f y ys) << p
+andThen p f = Direct <| \xs -> concat << List.map (\(y,ys) -> funP (f y) ys) <| funP p xs
 
 {-| Choice between two parsers -}
 (<|>) : Parser a r -> Parser a r -> Parser a r
@@ -144,8 +168,8 @@ separatedBy p s = (::) `map` p `and` many (s *> p)
 
 {-| Succeeds when input is empty -}
 end : Parser a ()
-end xs = case xs of
-    [] -> succeed () xs
+end = Direct <| \xs -> case xs of
+    [] -> funP (succeed ()) xs
     _  -> []
 
 infixl 4 <*>
