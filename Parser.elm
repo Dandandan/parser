@@ -9,7 +9,10 @@ module Parser where
 @docs map, or, and, andThen
 
 #Combinators
-@docs succeed, satisfy, empty, symbol, token, choice, optional, many, some, seperatedBy, end, recursively
+@docs succeed, satisfy, empty, symbol, token, choice, optional, many, some, seperatedBy, end
+
+#Writing recursive grammars
+@docs recursively
 
 #Core functions (infix operators)
 @docs (<*>), (<$>), (<|>), (<*), (*>), (<$)
@@ -28,7 +31,17 @@ funP p = case p of
            Direct f  -> f
            Delayed d -> force d
 
-{-| For realizing recursive grammars -}
+{-| For realizing otherwise inexpressible recursive grammars. For
+example, while
+
+    bbbba = (symbol 'a') `or` (symbol 'b' *> bbbba)
+
+will fail at runtime with a non-termination issue, the replacement
+
+    bbbba = (symbol 'a') `or` (symbol 'b' *> recursively (\() -> bbbba))
+
+is safe.
+-}
 recursively : (() -> Parser a r) -> Parser a r
 recursively t = Delayed << lazy <| \() -> funP (t ())
 
