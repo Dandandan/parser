@@ -1,8 +1,8 @@
-module Parser.Char where
+module Parser.Char (digit, natural, integer, float, upper, lower, parenthesized, bracketed, braced) where
 
 {-| Some parsers
 
-@docs digit, natural, integer, float, parenthesized, bracketed, braced
+@docs digit, natural, integer, float, upper, lower, parenthesized, bracketed, braced
 
 -}
 
