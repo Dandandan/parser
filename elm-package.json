@@ -1,0 +1,17 @@
+{
+    "version": "1.0.0",
+    "summary": "Simple parser combinator library",
+    "repository": "https://github.com/Dandandan/parser.git",
+    "license": "BSD3",
+    "source-directories": [
+        "."
+    ],
+    "exposed-modules": [
+        "Parser",
+        "Parser.Char"
+    ],
+    "dependencies": {
+        "elm-lang/core": "1.0.0 <= v < 2.0.0",
+        "maxsnew/lazy": "1.0.0 <= v < 2.0.0"
+    }
+}

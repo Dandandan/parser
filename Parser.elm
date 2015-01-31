@@ -16,13 +16,14 @@ module Parser where
 -}
 
 import String
-import Either (..)
+import Result (..)
 import List
+import List (..)
 import Lazy (..)
 
-data Parser a r = Direct ([a] -> [(r, [a])]) | Delayed (Lazy ([a] -> [(r, [a])]))
+type Parser a r = Direct (List a -> List (r, List a)) | Delayed (Lazy (List a -> List (r, List a)))
 
-funP : Parser a r -> [a] -> [(r, [a])]
+funP : Parser a r -> List a -> List (r, List a)
 funP p = case p of
            Direct f  -> f
            Delayed d -> force d
@@ -31,19 +32,19 @@ funP p = case p of
 recursively : (() -> Parser a r) -> Parser a r
 recursively t = Delayed << lazy <| \() -> funP (t ())
 
-{-| Parse a list using a parser -}
-parse : Parser a r -> [a] -> Either String r
+{-| Parse a list using a parser, return list of results -}
+parse : Parser a r -> List a -> Result String (List r)
 parse p xs =
   case funP p xs of
-    ((r,_)::_) -> Right r
-    _          -> Left "parse error"
+    [] -> Err "parse error"
+    xs -> Ok (List.map fst xs)
 
 {-| The parser record makes things look nicer when using command syntax -}
 parser : { andThen : Parser s a -> (a -> Parser s b) -> Parser s b }
 parser = { andThen = andThen }
 
 {-| Parse a `String` using a `Char` parser  -}
-parseString : Parser Char r -> String -> Either String r
+parseString : Parser Char r -> String -> Result String (List r)
 parseString p = parse p << String.toList
 
 {-| Parser that always succeeds without consuming input -}
@@ -66,14 +67,14 @@ symbol : a -> Parser a a
 symbol x = satisfy (\s -> s == x)
 
 {-| Parses a token of symbols -}
-token : [a] -> Parser a [a]
+token : List a -> Parser a (List a)
 token xs     =
   case xs of
     []      -> succeed []
     (x::xs) -> (::) `map` symbol x `and` token xs
 
 {-| Combine a list of parsers -}
-choice : [Parser a r] -> Parser a r
+choice : List (Parser a r) -> Parser a r
 choice = foldr or empty
 
 {-| Parses an optional element -}
@@ -81,7 +82,7 @@ optional : Parser a r -> r -> Parser a r
 optional p x = p `or` succeed x
 
 {-| Parses zero or more occurences of a parser -}
-many : Parser a r -> Parser a [r]
+many : Parser a r -> Parser a (List r)
 many p = --(::) <$> p <*> many p <|> succeed [] (lazy version)
   Direct <| \xs ->
     case funP p xs of
@@ -89,10 +90,10 @@ many p = --(::) <$> p <*> many p <|> succeed [] (lazy version)
         _ -> funP ((::) `map` p `and` many p) xs
 
 {-| Parses one or more occurences of a parser -}
-some : Parser a r -> Parser a [r]
+some : Parser a r -> Parser a (List r)
 some p = (::) `map` p `and` many p
 
-{-| Map a function over the result of the parser 
+{-| Map a function over the result of the parser
 
       count = length `map` many digit
 
@@ -107,7 +108,7 @@ map f p = Direct <| \xs -> List.map (\(r,ys) -> (f r, ys)) <| funP p xs
 or : Parser a r -> Parser a r -> Parser a r
 or p q = Direct <| \xs -> funP p xs ++ funP q xs
 
-{-| Sequence two parsers 
+{-| Sequence two parsers
 
     data Date = Date Int Int Int
     date = Date `map` year `and` month `and` day
@@ -148,9 +149,9 @@ p <* q = always `map` p `and` q
 (*>) : Parser a s -> Parser a r -> Parser a r
 p *> q = flip always `map` p `and` q
 
-{-| Parses a sequence of the first parser, seperated by the second parser -} 
-seperatedBy : Parser a r -> Parser a s -> Parser a [r]
-seperatedBy p s = (::) `map` p `and` many (s *> p)
+{-| Parses a sequence of the first parser, separated by the second parser -}
+separatedBy : Parser a r -> Parser a s -> Parser a (List r)
+separatedBy p s = (::) `map` p `and` many (s *> p)
 
 {-| Succeeds when input is empty -}
 end : Parser a ()
