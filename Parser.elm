@@ -1,4 +1,11 @@
-module Parser where
+module Parser
+    ( Parser
+    , parse, parseString, parser
+    , map, or, and, andThen
+    , succeed, satisfy, empty, symbol, token, choice, optional, many, some, seperatedBy, end
+    , recursively
+    , (<*>), (<$>), (<|>), (<*), (*>), (<$)
+    ) where
 
 {-| A simple parser combinator library.
 
