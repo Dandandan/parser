@@ -2,7 +2,7 @@ module Parser
     ( Parser
     , parse, parseString, parser
     , map, or, and, andThen
-    , succeed, satisfy, empty, symbol, token, choice, optional, many, some, seperatedBy, end
+    , succeed, satisfy, empty, symbol, token, choice, optional, many, some, separatedBy, end
     , recursively
     , (<*>), (<$>), (<|>), (<*), (*>), (<$)
     ) where
@@ -16,7 +16,7 @@ module Parser
 @docs map, or, and, andThen
 
 #Combinators
-@docs succeed, satisfy, empty, symbol, token, choice, optional, many, some, seperatedBy, end
+@docs succeed, satisfy, empty, symbol, token, choice, optional, many, some, separatedBy, end
 
 #Writing recursive grammars
 @docs recursively
