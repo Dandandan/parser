@@ -1,8 +1,8 @@
-module Parser.Char (digit, natural, integer, float, upper, lower, parenthesized, bracketed, braced) where
+module Parser.Char (digit, natural, integer, float, upper, lower, between, parenthesized, bracketed, braced) where
 
 {-| Some parsers
 
-@docs digit, natural, integer, float, upper, lower, parenthesized, bracketed, braced
+@docs digit, natural, integer, float, upper, lower, between, parenthesized, bracketed, braced
 
 -}
 
@@ -20,13 +20,20 @@ digit = (\x -> Char.toCode x - 48) `Parser.map` satisfy Char.isDigit
 natural : Parser Char Int
 natural = foldl (\b a -> a * 10 + b) 0 `Parser.map` some digit
 
-{-| Parse an integer -}
-integer : Parser Char Int
-integer = (always (\x -> -x) `Parser.map` (symbol '-')) `optional` identity `and` natural
+--parse a sign
+sign : Parser Char Int
+sign = optional (always (-1) `Parser.map` symbol '-') 1 `or` optional (always 1 `Parser.map` symbol '+') 1
 
-{-| Parse a float -}
+{-| Parse an integer with optional sign -}
+integer : Parser Char Int
+integer = (\sig nat -> sig * nat) `Parser.map` sign `and` natural
+
+{-| Parse a float with optional sign -}
 float : Parser Char Float
-float = (\i f -> toFloat i + 0.1 * foldr (\b a -> a / 10 + b) 0 (List.map toFloat f))  `Parser.map` integer <* symbol '.' `and` some digit
+float =
+    let convertToFloat sig int dig = toFloat sig * (toFloat int + 0.1 * foldr (\b a -> a / 10 + b) 0 (List.map toFloat dig))
+    in
+        convertToFloat `Parser.map` sign `and` integer `and` (symbol '.' *> some digit)
 
 {-| Parse a upper case character -}
 upper : Parser Char Char
@@ -36,14 +43,18 @@ upper = satisfy Char.isUpper
 lower : Parser Char Char
 lower = satisfy Char.isLower
 
+{-| Parse a parser between two `Chars` -}
+between : Char -> Char -> Parser Char result-> Parser Char result
+between x y parser = symbol x *> parser <* symbol y
+
 {-| Parse a parser between parentheses `(` and `)`-}
-parenthesized : Parser Char r -> Parser Char r
-parenthesized p = symbol '(' *> p <*symbol ')'
+parenthesized : Parser Char result -> Parser Char result
+parenthesized = between '(' ')'
 
 {-| Parses a parser between brackets `[` and `]` -}
-bracketed : Parser Char r -> Parser Char r
-bracketed p = symbol '[' *> p <* symbol ']'
+bracketed : Parser Char result -> Parser Char result
+bracketed = between '[' ']'
 
 {-| Parses a parser between braces `{` and `}`-}
-braced : Parser Char r -> Parser Char r
-braced p = symbol '{' *>  p <* symbol '}'
+braced : Parser Char result -> Parser Char result
+braced = between '{' '}'
