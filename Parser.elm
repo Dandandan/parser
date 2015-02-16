@@ -52,7 +52,7 @@ is safe.
 recursively : (() -> Parser result) -> Parser result
 recursively t = Delayed << lazy <| \() -> funP (t ())
 
-{-| Parse a list using a parser, return list of results -}
+{-| Parse a `String` using a parser, return list of results -}
 parse : Parser result -> String -> Result String (List result)
 parse p xs =
     case funP p xs of

@@ -1,4 +1,9 @@
 ## [4.0.0] - 2015-02-16
+### Fixed
+* Exported sign parser
+* Documentation improvement
+
+## [4.0.0] - 2015-02-16
 ### Changed
 * Simplified parser by specialising it to Strings
 * Splitting out number parsers
