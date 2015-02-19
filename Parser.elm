@@ -111,7 +111,8 @@ some : Parser result -> Parser (List result)
 some p = (::) `map` p `and` many p
 
 {-| Map a function over the result of the parser
-
+      -- Counts the amount of digits
+      count : Parser Int
       count = length `map` many digit
 
 -}
@@ -165,9 +166,7 @@ end =
 (<$>) : (result -> result2) -> Parser result -> Parser result2
 (<$>) = map
 
-{-| Sequence two parsers
-
---}
+{-| Sequence two parsers -}
 (<*>) : Parser (result -> result2) -> Parser result -> Parser result2
 (<*>) = and
 
