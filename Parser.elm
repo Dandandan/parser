@@ -10,7 +10,7 @@ module Parser
 {-| A simple parser combinator library.
 
 #Running the parser
-@docs parse
+@docs parse, parseAll
 
 #Core functions
 @docs map, or, and, andThen
