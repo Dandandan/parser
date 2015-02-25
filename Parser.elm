@@ -1,6 +1,6 @@
 module Parser
     ( Parser
-    , parse
+    , parse, parseAll
     , map, or, and, andThen
     , succeed, satisfy, empty, symbol, token, choice, optional, many, some, separatedBy, end
     , recursively
@@ -33,7 +33,7 @@ import Lazy (..)
 type Parser result = Direct (String -> List (result, String)) | Delayed (Lazy (String -> List (result, String)))
 
 funP : Parser result -> String -> List (result, String)
-funP p = 
+funP p =
     case p of
         Direct f  -> f
         Delayed d -> force d
@@ -52,9 +52,16 @@ is safe.
 recursively : (() -> Parser result) -> Parser result
 recursively t = Delayed << lazy <| \() -> funP (t ())
 
-{-| Parse a `String` using a parser, return list of results -}
-parse : Parser result -> String -> Result String (List result)
+{-| Parse a `String` using a parser, return first result -}
+parse : Parser result -> String -> Result String result
 parse p xs =
+    case funP p xs of
+        [] -> Err "parse error"
+        (x::_)-> Ok (fst x)
+
+{-| Parse a `String` using a parser, return list of results -}
+parseAll : Parser result -> String -> Result String (List result)
+parseAll p xs =
     case funP p xs of
         [] -> Err "parse error"
         xs -> Ok (List.map fst xs)
@@ -134,7 +141,7 @@ or p q =
     date = Date `map` year `and` month `and` day
 -}
 and : Parser (result -> result2) -> Parser result -> Parser result2
-and p q = 
+and p q =
     Direct <| \xs ->
         List.concat << List.map (\(f, ys) -> List.map (\(r, rs) -> (f r, rs)) <| funP q ys) <| funP p xs
 
@@ -143,7 +150,7 @@ and p q =
 -}
 andThen : Parser result -> (result -> Parser result2) -> Parser result2
 andThen p f =
-    Direct <| \xs -> 
+    Direct <| \xs ->
         List.concat << List.map (\(y,ys) -> funP (f y) ys) <| funP p xs
 
 {-| Parses a sequence of the first parser, separated by the second parser -}
@@ -153,7 +160,7 @@ separatedBy p s =
 
 {-| Succeeds when input is empty -}
 end : Parser ()
-end = 
+end =
     Direct <| \xs -> case xs of
         "" -> funP (succeed ()) xs
         _  -> []

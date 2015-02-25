@@ -1,4 +1,9 @@
-## [4.0.0] - 2015-02-16
+## [5.0.0] - 2015-02-25
+### Changed
+* Parse now returns only the first matching parser, use `parseAll` to get
+  results of all matching parsers
+
+## [4.1.0] - 2015-02-16
 ### Fixed
 * Exported sign parser
 * Documentation improvement

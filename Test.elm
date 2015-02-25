@@ -3,38 +3,32 @@ import Random (..)
 import Parser (..)
 import Parser.Char as PC
 import Parser.Number as PN
-import Text (plainText)
+import Text
+import Signal
 import List
 import Random.Char (lowerCaseLatin, upperCaseLatin)
 import String
 
 tests =
-  check [
+    continuousCheck [
           property "Digit parsing "
             (\number ->
-                case parse PN.digit (toString number) of
-                    Err _ -> False
-                    Ok i -> List.take 1 i == [number]
+                parse PN.digit (toString number) == Ok number
             ) (int 0 9),
 
           property "Natural parsing "
             (\number ->
-                case parse PN.natural (toString number) of
-                    Err _ -> False
-                    Ok i -> List.take 1 i == [number]
+                parse PN.natural (toString number) == Ok number
             ) (int 0 1000000),
+
           property "Integer parsing "
             (\number ->
-                case parse PN.integer (toString number) of
-                    Err _ -> False
-                    Ok i -> List.take 1 i == [number]
+                parse PN.integer (toString number) == Ok number
             ) (int -1000000 1000000),
 
           property "Float parsing "
             (\number ->
-                case parse PN.float (toString number) of
-                    Err _ -> False
-                    Ok i -> List.take 1 i == [number]
+                parse PN.float (toString number) == Ok number
 
             ) (float -1000000 1000000),
 
@@ -67,4 +61,4 @@ tests =
 
   ]
 
-main = plainText tests
+main = Signal.map display tests

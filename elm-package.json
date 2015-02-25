@@ -1,5 +1,5 @@
 {
-    "version": "4.1.1",
+    "version": "5.0.0",
     "summary": "Parser using parser combinators",
     "repository": "https://github.com/Dandandan/parser.git",
     "license": "BSD3",
@@ -12,8 +12,8 @@
         "Parser.Number"
     ],
     "dependencies": {
-        "TheSeamau5/elm-check": "1.0.0 <= v < 2.0.0",
-        "TheSeamau5/elm-random-extra": "1.0.1 <= v < 2.0.0",
+        "TheSeamau5/elm-check": "2.0.0 <= v < 3.0.0",
+        "TheSeamau5/elm-random-extra": "1.0.0 <= v < 2.0.0",
         "elm-lang/core": "1.0.0 <= v < 2.0.0",
         "maxsnew/lazy": "1.0.0 <= v < 2.0.0"
     }
