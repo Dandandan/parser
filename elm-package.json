@@ -1,5 +1,5 @@
 {
-    "version": "5.0.2",
+    "version": "5.0.3",
     "summary": "Parser using parser combinators",
     "repository": "https://github.com/Dandandan/parser.git",
     "license": "BSD3",
