@@ -7,7 +7,7 @@ module Parser.Char (upper, lower, between, parenthesized, bracketed, braced) whe
 -}
 
 import Char
-import Parser (..)
+import Parser exposing (..)
 
 {-| Parse a upper case character -}
 upper : Parser Char
