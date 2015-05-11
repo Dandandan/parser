@@ -7,7 +7,7 @@ module Parser.Number (digit, natural, integer, float, sign) where
 -}
 
 import Char
-import Parser (..)
+import Parser exposing (..)
 import List
 
 {-| Parse a digit -}
