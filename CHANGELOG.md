@@ -1,3 +1,8 @@
+## [5.0.2] - 2015-02-25
+### Changed
+* Update to Elm 0.15
+
+
 ## [5.0.0] - 2015-02-25
 ### Changed
 * Parse now returns only the first matching parser, use `parseAll` to get

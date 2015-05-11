@@ -1,12 +1,12 @@
-import Check (..)
-import Random (..)
-import Parser (..)
+import Check
+import Random
+import Parser as P
 import Parser.Char as PC
 import Parser.Number as PN
 import Text
 import Signal
 import List
-import Random.Char (lowerCaseLatin, upperCaseLatin)
+import Random.Char exposing (lowerCaseLatin, upperCaseLatin)
 import String
 
 tests =

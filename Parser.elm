@@ -26,17 +26,17 @@ module Parser
 
 -}
 
-import String (cons, uncons)
+import String
 import List
-import Lazy (..)
+import Lazy as L
 
-type Parser result = Direct (String -> List (result, String)) | Delayed (Lazy (String -> List (result, String)))
+type Parser result = Direct (String -> List (result, String)) | Delayed (L.Lazy (String -> List (result, String)))
 
 funP : Parser result -> String -> List (result, String)
 funP p =
     case p of
         Direct f  -> f
-        Delayed d -> force d
+        Delayed d -> L.force d
 
 {-| For realizing otherwise inexpressible recursive grammars. For
 example, while
@@ -50,7 +50,7 @@ will fail at runtime with a non-termination issue, the replacement
 is safe.
 -}
 recursively : (() -> Parser result) -> Parser result
-recursively t = Delayed << lazy <| \() -> funP (t ())
+recursively t = Delayed << L.lazy <| \() -> funP (t ())
 
 {-| Parse a `String` using a parser, return first result -}
 parse : Parser result -> String -> Result String result
@@ -74,7 +74,7 @@ succeed b =
 {-| Parser that satisfies a given predicate -}
 satisfy : (Char -> Bool) -> Parser Char
 satisfy p = Direct <| \xs ->
-    case uncons xs of
+    case String.uncons xs of
         Nothing -> []
         Just (x, xs') -> if p x then [(x, xs')] else []
 
@@ -91,9 +91,9 @@ symbol x =
 {-| Parses a token of symbols -}
 token : String -> Parser String
 token xs =
-    case (uncons xs) of
+    case (String.uncons xs) of
         Nothing      -> succeed ""
-        Just (x,xs)  -> cons `map` symbol x `and` token xs
+        Just (x,xs)  -> String.cons `map` symbol x `and` token xs
 
 {-| Combine a list of parsers -}
 choice : List (Parser result) -> Parser result
