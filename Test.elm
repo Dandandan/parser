@@ -1,64 +1,80 @@
-import Check
-import Random
-import Parser as P
+import Check exposing (..)
+import Check.Investigator exposing (Investigator, investigator, rangeInt, float, char)
+import Check.Runner.Browser exposing (display)
+import Parser exposing (parse)
 import Parser.Char as PC
 import Parser.Number as PN
-import Text
-import Signal
-import List
 import Random.Char exposing (lowerCaseLatin, upperCaseLatin)
+import Result.Extra exposing (isOk)
+import Shrink
 import String
 
-tests =
-    continuousCheck [
-          property "Digit parsing "
-            (\number ->
-                parse PN.digit (toString number) == Ok number
-            ) (int 0 9),
+lowerCaseChar : Investigator Char
+lowerCaseChar = investigator lowerCaseLatin Shrink.character
 
-          property "Natural parsing "
-            (\number ->
-                parse PN.natural (toString number) == Ok number
-            ) (int 0 1000000),
+upperCaseChar : Investigator Char
+upperCaseChar = investigator upperCaseLatin Shrink.character
 
-          property "Integer parsing "
-            (\number ->
-                parse PN.integer (toString number) == Ok number
-            ) (int -1000000 1000000),
+parserSuite =
+  suite "Parser"
+    [ claim
+        "Digit parsing"
+      `that`
+        (parse PN.digit << toString)
+      `is`
+        Ok
+      `for`
+        (rangeInt 0 9)
+    , claim
+        "Natural parsing"
+      `that`
+        (parse PN.natural << toString)
+      `is`
+        Ok
+      `for`
+        (rangeInt 0 1000000)
+    , claim
+        "Integer parsing"
+      `that`
+        (parse PN.integer << toString)
+      `is`
+        Ok
+      `for`
+        (rangeInt -1000000 1000000)
+    , claim
+        "Float parsing"
+      `that`
+        (parse PN.float << toString << (\n -> if n == 0 then 0.0 else n))
+      `is`
+        Ok
+      `for`
+        float
+    , claim
+        "Lower parsing"
+      `true`
+        (isOk << parse PC.lower << String.fromChar)
+      `for`
+        lowerCaseChar
+    , claim
+        "Lower parsing"
+      `false`
+        (isOk << parse PC.lower << String.fromChar)
+      `for`
+        upperCaseChar
+    , claim
+        "Upper parsing"
+      `true`
+        (isOk << parse PC.upper << String.fromChar)
+      `for`
+        upperCaseChar
+    , claim
+        "Upper parsing"
+      `false`
+        (isOk << parse PC.upper << String.fromChar)
+      `for`
+        lowerCaseChar
+    ]
 
-          property "Float parsing "
-            (\number ->
-                parse PN.float (toString number) == Ok number
+result = quickCheck parserSuite
 
-            ) (float -1000000 1000000),
-
-          property "Lower parsing "
-            (\char ->
-                case parse PC.lower (String.fromChar char) of
-                    Err _ -> False
-                    Ok i  -> True
-            ) lowerCaseLatin,
-
-          property "Lower parsing "
-            (\char ->
-                case parse PC.lower (String.fromChar char) of
-                    Err _ -> True
-                    Ok i  -> False
-            ) upperCaseLatin,
-
-        property "Upper parsing "
-            (\char ->
-                case parse PC.upper (String.fromChar char) of
-                    Err _ -> False
-                    Ok i  -> True
-            ) upperCaseLatin,
-        property "Upper parsing "
-            (\char ->
-                case parse PC.upper (String.fromChar char) of
-                    Err _ -> True
-                    Ok i  -> False
-            ) lowerCaseLatin
-
-  ]
-
-main = Signal.map display tests
+main = display result
