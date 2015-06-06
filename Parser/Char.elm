@@ -38,3 +38,8 @@ bracketed =
 braced : Parser result -> Parser result
 braced =
     between '{' '}'
+
+{-| Parses a parser between quotes `"` and `"`-}
+quoted : Parser result -> Parser result
+quoted =
+    between '"' '"'
