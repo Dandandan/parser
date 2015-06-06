@@ -44,7 +44,7 @@ parserSuite =
     , claim
         "Float parsing"
       `that`
-        (parse PN.float << toString << (\n -> if n == 0 then 0.0 else n))
+        (parse PN.float << (\n -> if n == 0 then "0.0" else toString n))
       `is`
         Ok
       `for`
