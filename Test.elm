@@ -44,7 +44,10 @@ parserSuite =
     , claim
         "Float parsing"
       `that`
-        (parse PN.float << (\n -> if n == 0 then "0.0" else toString n))
+        (parse PN.float << (\n -> let s = toString n
+                                  in if String.contains "." s
+                                        then s
+                                        else s ++ ".0"))
       `is`
         Ok
       `for`
