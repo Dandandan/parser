@@ -9,6 +9,7 @@ module Parser.Number (digit, natural, integer, float, sign) where
 import Char
 import Parser exposing (..)
 import List
+import String
 
 {-| Parse a digit -}
 digit : Parser Int
@@ -34,9 +35,17 @@ integer : Parser Int
 integer =
     map (\sig nat -> sig * nat) sign `and` natural
 
+{-| The fromOk function extracts the element out of a Ok. -}
+fromOk : Result e a -> a
+fromOk r = case r of
+    Ok n -> n
+
 {-| Parse a float with optional sign -}
 float : Parser Float
 float =
-    let convertToFloat sig int dig = toFloat sig * (toFloat int + 0.1 * List.foldr (\b a -> a / 10 + b) 0 (List.map toFloat dig))
+    let toFloatString (i,ds) =
+          toString i ++ List.foldl (\d s -> s ++ toString d) "." ds
+        convertToFloat sig int digs =
+          toFloat sig * (fromOk << String.toFloat << toFloatString) (int,digs)
     in
         map convertToFloat sign `and` integer `and` (symbol '.' *> some digit)
