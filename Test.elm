@@ -6,8 +6,8 @@ import Parser.Char as PC
 import Parser.Number as PN
 import Random.Char exposing (lowerCaseLatin, upperCaseLatin)
 import Result.Extra exposing (isOk)
-import String
 import Shrink
+import String
 
 lowerCaseChar : Investigator Char
 lowerCaseChar = investigator lowerCaseLatin Shrink.character

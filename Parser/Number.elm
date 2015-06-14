@@ -14,18 +14,18 @@ import String
 {-| Parse a digit -}
 digit : Parser Int
 digit =
-    satisfy Char.isDigit 
+    satisfy Char.isDigit
     |> map (\x -> Char.toCode x - 48)
 
 {-| Parse a natural number -}
 natural : Parser Int
-natural = 
+natural =
     some digit
     |> map (List.foldl (\b a -> a * 10 + b) 0 )
 
 {-| Parse a optional sign, succeeds with a -1 if it matches a minus `Char`, otherwise it returns 1 -}
 sign : Parser Int
-sign = 
+sign =
     let plus = always (-1) `map` symbol '-'
         min  = always 1 `map` symbol '+'
     in  optional (plus `or` min) 1
@@ -33,19 +33,21 @@ sign =
 {-| Parse an integer with optional sign -}
 integer : Parser Int
 integer =
-    map (\sig nat -> sig * nat) sign `and` natural
+    map (*) sign `and` natural
 
-{-| The fromOk function extracts the element out of a Ok. -}
-fromOk : Result e a -> a
-fromOk r = case r of
-    Ok n -> n
+{-| The fromOk function extracts the element out of a Ok, with a default. -}
+fromOk : a -> Result e a -> a
+fromOk d r = case r of
+    Ok n    -> n
+    Err  _  -> d
+
 
 {-| Parse a float with optional sign -}
 float : Parser Float
 float =
     let toFloatString (i,ds) =
-          toString i ++ List.foldl (\d s -> s ++ toString d) "." ds
+          toString i ++ "." ++ String.concat (List.map toString ds)
         convertToFloat sig int digs =
-          toFloat sig * (fromOk << String.toFloat << toFloatString) (int,digs)
+          toFloat sig * (fromOk 0.0 << String.toFloat << toFloatString) (int,digs)
     in
         map convertToFloat sign `and` integer `and` (symbol '.' *> some digit)
