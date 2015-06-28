@@ -1,8 +1,8 @@
-module Parser.Char (upper, lower, between, parenthesized, bracketed, braced) where
+module Parser.Char (upper, lower, between, parenthesized, bracketed, braced, quoted) where
 
 {-| Parsing characters
 
-@docs upper, lower, between, parenthesized, bracketed, braced
+@docs upper, lower, between, parenthesized, bracketed, braced, quoted
 
 -}
 
