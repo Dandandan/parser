@@ -1,8 +1,10 @@
 ## [5.0.4] - 2015-02-25
 ### Added
 * Quoted parser (thanks to @jivagoalves)
+
 ### Changed
 * Updated to elm-check3 and enabled tests again (thanks to @jivagoalves)
+
 ### Fixed
 * Fixed `Parser.Number.float` issue found by test (thanks again @jivagoalves)
 
