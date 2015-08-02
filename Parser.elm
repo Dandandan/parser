@@ -4,7 +4,7 @@ module Parser
     , map, or, and, andThen
     , succeed, satisfy, empty, symbol, token, choice, optional, many, some, separatedBy, end
     , recursively
-    , (<*>), (<$>), (<|>), (<*), (*>), (<$)
+    , (<*), (*>), (<$)
     ) where
 
 {-| A simple parser combinator library.
@@ -91,9 +91,9 @@ symbol x =
 {-| Parses a token of symbols -}
 token : String -> Parser String
 token xs =
-    case (String.uncons xs) of
+    case String.uncons xs of
         Nothing      -> succeed ""
-        Just (x,xs)  -> String.cons `map` symbol x `and` token xs
+        Just (x, xs)  -> String.cons `map` symbol x `and` token xs
 
 {-| Combine a list of parsers -}
 choice : List (Parser result) -> Parser result
@@ -125,7 +125,7 @@ some p = (::) `map` p `and` many p
 -}
 map : (result -> result2) -> Parser result -> Parser result2
 map f p =
-    Direct <| \xs -> List.map (\(r,ys) -> (f r, ys)) <| funP p xs
+    Direct <| \xs -> List.map (\(r, ys) -> (f r, ys)) <| funP p xs
 
 {-| Choice between two parsers
 
@@ -153,7 +153,11 @@ andThen p f =
     Direct <| \xs ->
         List.concat << List.map (\(y,ys) -> funP (f y) ys) <| funP p xs
 
-{-| Parses a sequence of the first parser, separated by the second parser -}
+{-| Parses a sequence of the first parser, separated by the second parser
+```
+naturals = separatedBy Number.natural (symbol ',')
+```
+ -}
 separatedBy : Parser result -> Parser result2 -> Parser (List result)
 separatedBy p s =
     map (::) p `and` many (map (\x y -> y) s `and` p)
@@ -165,39 +169,23 @@ end =
         "" -> funP (succeed ()) xs
         _  -> []
 
-{-| Choice between two parsers -}
-(<|>) : Parser result -> Parser result -> Parser result
-(<|>) = or
-
-{-| Map a function over the result of the parser -}
-(<$>) : (result -> result2) -> Parser result -> Parser result2
-(<$>) = map
-
-{-| Sequence two parsers -}
-(<*>) : Parser (result -> result2) -> Parser result -> Parser result2
-(<*>) = and
-
-{-| Variant of `<$>` that ignores the result of the parser -}
+{-| Variant of `map` that ignores the result of the parser -}
 (<$) : result -> Parser x -> Parser result
 f <$ p =
     always f `map` p
 
-{-| Variant of `<*>` that ignores the result of the parser at the right -}
+{-| Variant of `and` that ignores the result of the parser at the right -}
 (<*) : Parser result -> Parser x -> Parser result
 p <* q =
     always `map` p `and` q
 
-{-| Variant of `<*>` that ignores the result of the parser at the left -}
+{-| Variant of `and` that ignores the result of the parser at the left -}
 (*>) : Parser x -> Parser result -> Parser result
 p *> q =
     flip always `map` p `and` q
 
-infixl 4 <*>
 infixl 4 `and`
 infixr 3 <|>
 infixr 3 `or`
 infixl 4 <$>
 infixl 4 `map`
-infixl 4 <$
-infixl 4 <*
-infixl 4 *>

@@ -1,3 +1,8 @@
+## [6.0.0] - 2015-02-25
+## Removed
+`<$>`, `<|>` and `<*>` (use `map`, `or` and `and`)
+
+
 ## [5.0.4] - 2015-02-25
 ### Added
 * Quoted parser (thanks to @jivagoalves)

@@ -78,6 +78,8 @@ parserSuite =
         lowerCaseChar
     ]
 
-result = quickCheck parserSuite
+result =
+    quickCheck parserSuite
 
-main = display result
+main =
+    display result
