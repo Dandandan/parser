@@ -12,7 +12,7 @@ fail.
 Examples
 ======
 
-```
+```elm
 {-| Parse a optional sign, succeeds with a -1 if it matches a minus `Char`, otherwise it returns 1 -}
 sign : Parser Int
 sign =
