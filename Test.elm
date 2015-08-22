@@ -6,9 +6,10 @@ import Check.Investigator exposing ( Investigator
                                    , char
                                    , lowerCaseChar
                                    , upperCaseChar
+                                   , list
                                    )
 import Check.Runner.Browser exposing (display)
-import Parser exposing (parse)
+import Parser exposing (parse, separatedBy, symbol)
 import Parser.Char as PC
 import Parser.Number as PN
 import Result.Extra exposing (isOk)
@@ -76,6 +77,12 @@ parserSuite =
         (isOk << parse PC.upper << String.fromChar)
       `for`
         lowerCaseChar
+    , claim
+        "List"
+      `true`
+        (isOk << parse (PC.bracketed (separatedBy PN.integer (symbol ','))) << toString)
+       `for`
+       list (rangeInt -1000000000 10000000000)
     ]
 
 result =
