@@ -1,6 +1,13 @@
+## 7.0.0 - 2015-08-22
+## Added
+* `andMap` (`and` with reversed arguments)
+
+## Fixed
+* `separatedBy`
+
 ## [6.0.0] - 2015-02-25
 ## Removed
-`<$>`, `<|>` and `<*>` (use `map`, `or` and `and`)
+* `<$>`, `<|>` and `<*>` (use `map`, `or` and `and`)
 
 
 ## [5.0.4] - 2015-02-25
