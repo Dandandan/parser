@@ -1,8 +1,8 @@
-module Parser.Char (upper, lower, between, parenthesized, bracketed, braced, quoted) where
+module Parser.Char (upper, lower, between, parenthesized, bracketed, braced, quoted, singleQuoted) where
 
 {-| Parsing characters
 
-@docs upper, lower, between, parenthesized, bracketed, braced, quoted
+@docs upper, lower, between, parenthesized, bracketed, braced, quoted, singleQuoted
 
 -}
 
@@ -43,3 +43,8 @@ braced =
 quoted : Parser result -> Parser result
 quoted =
     between '"' '"'
+
+{-| Parses a parser between quotes `'` and `'`-}
+singleQuoted : Parser result -> Parser result
+singleQuoted =
+    between '\'' '\''
