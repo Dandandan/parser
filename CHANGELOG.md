@@ -1,13 +1,17 @@
+## 6.2.0 - 2015-08-22
+## Added
+* `Parser.Char.singleQuoted`
+
 ## 6.1.0 - 2015-08-22
 ## Added
-* `andMap` (`and` with reversed arguments)
+* `Parser.andMap` (`Parser.andMap` with reversed arguments)
 
 ## Fixed
-* `separatedBy`
+* `Parser.separatedBy`
 
 ## [6.0.0] - 2015-02-25
 ## Removed
-* `<$>`, `<|>` and `<*>` (use `map`, `or` and `and`)
+* `<$>`, `<|>` and `<*>` (use `Parser.map`, `Parser.or` and `Parser.and`)
 
 
 ## [5.0.4] - 2015-02-25
@@ -28,7 +32,7 @@
 
 ## [5.0.0] - 2015-02-25
 ### Changed
-* Parse now returns only the first matching parser, use `parseAll` to get
+* Parse now returns only the first matching parser, use `Parser.parseAll` to get
   results of all matching parsers
 
 ## [4.1.0] - 2015-02-16
