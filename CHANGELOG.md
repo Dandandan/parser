@@ -1,4 +1,4 @@
-## 7.0.0 - 2015-08-22
+## 6.1.0 - 2015-08-22
 ## Added
 * `andMap` (`and` with reversed arguments)
 
