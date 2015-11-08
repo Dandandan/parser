@@ -1,10 +1,11 @@
 {
     "version": "6.2.1",
-    "summary": "Parser using parser combinators",
+    "summary": "Parser using parser combinators (Tests)",
     "repository": "https://github.com/Dandandan/parser.git",
     "license": "BSD3",
     "source-directories": [
-        "."
+      "..",
+      "."
     ],
     "exposed-modules": [
         "Parser",
@@ -12,6 +13,9 @@
         "Parser.Number"
     ],
     "dependencies": {
+        "TheSeamau5/elm-check": "3.2.0 <= v < 4.0.0",
+        "TheSeamau5/elm-shrink": "2.2.1 <= v < 3.0.0",
+        "circuithub/elm-result-extra": "1.1.0 <= v < 2.0.0",
         "elm-lang/core": "2.1.0 <= v < 2.2.0",
         "maxsnew/lazy": "1.0.1 <= v < 2.0.0"
     },
