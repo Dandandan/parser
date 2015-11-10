@@ -17,12 +17,12 @@ Examples
 sign : Parser Int
 sign =
     let
-        plus =
+        minus =
             map (always -1) (symbol '-')
-        min =
+        plus =
             map (always 1) (symbol '+')
     in
-        optional (plus `or` min) 1
+        optional (plus `or` minus) 1
 
 {-| Parse a digit -}
 digit : Parser Int
