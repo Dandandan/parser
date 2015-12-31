@@ -222,18 +222,18 @@ end =
 
 {-| Variant of `map` that ignores the result of the parser -}
 (<$) : result -> Parser x -> Parser result
-f <$ p =
+(<$) f p =
     map (always f) p
 
 {-| Variant of `and` that ignores the result of the parser at the right -}
 (<*) : Parser result -> Parser x -> Parser result
-p <* q =
+(<*) p q =
     map always p
     |> andMap q
 
 {-| Variant of `and` that ignores the result of the parser at the left -}
 (*>) : Parser x -> Parser result -> Parser result
-p *> q =
+(*>) p q =
     map (flip always) p
     |> andMap q
 
