@@ -1,20 +1,15 @@
 import Check exposing (..)
-import Check.Investigator exposing ( Investigator
-                                   , investigator
-                                   , rangeInt
-                                   , float
-                                   , char
-                                   , lowerCaseChar
-                                   , upperCaseChar
-                                   , list
-                                   )
-import Check.Runner.Browser exposing (display)
+import Check.Investigator exposing (
+  Investigator, investigator, rangeInt, float,
+  char, lowerCaseChar, upperCaseChar, list
+  )
 import Parser exposing (parse, separatedBy, symbol)
 import Parser.Char as PC
 import Parser.Number as PN
 import Result.Extra exposing (isOk)
 import Shrink
 import String
+import Graphics.Element exposing (Element, show, down, flow)
 
 parserSuite =
   suite "Parser"
@@ -90,3 +85,12 @@ result =
 
 main =
     display result
+
+
+display : Evidence -> Element
+display evidence =
+  case evidence of
+  Unit unitEvidence ->
+    show unitEvidence
+  Multiple name evidences ->
+    flow down (List.map show evidences)
