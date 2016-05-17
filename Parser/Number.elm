@@ -1,4 +1,4 @@
-module Parser.Number (digit, natural, integer, float, sign) where
+module Parser.Number exposing (digit, natural, integer, float, sign)
 
 {-| Parsing numbers
 

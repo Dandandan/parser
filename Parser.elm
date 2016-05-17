@@ -1,11 +1,11 @@
-module Parser
+module Parser exposing
     ( Parser
     , parse, parseAll
     , map, or, andMap, andThen, and
     , succeed, satisfy, empty, symbol, token, choice, optional, many, some, separatedBy, end
     , recursively
     , (<*), (*>), (<$)
-    ) where
+    )
 
 {-| A simple parser combinator library.
 

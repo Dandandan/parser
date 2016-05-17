@@ -1,4 +1,4 @@
-module Parser.Char (upper, lower, between, parenthesized, bracketed, braced, quoted, singleQuoted) where
+module Parser.Char exposing (upper, lower, between, parenthesized, bracketed, braced, quoted, singleQuoted)
 
 {-| Parsing characters
 
