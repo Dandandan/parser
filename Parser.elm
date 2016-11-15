@@ -67,7 +67,7 @@ parse p xs =
         [] ->
             Err "parse error"
         (x :: _) ->
-            Ok (fst x)
+            Ok (Tuple.first x)
 
 {-| Parse a `String` using a parser, return list of results -}
 parseAll : Parser result -> String -> Result String (List result)
@@ -76,7 +76,7 @@ parseAll p xs =
         [] ->
             Err "parse error"
         xs ->
-            Ok (List.map fst xs)
+            Ok (List.map Tuple.first xs)
 
 {-| Parser that always succeeds without consuming input -}
 succeed : result -> Parser result
@@ -90,8 +90,8 @@ satisfy p = Direct <| \xs ->
     case String.uncons xs of
         Nothing ->
             []
-        Just (x, xs') ->
-            if p x then [(x, xs')] else []
+        Just (x, xs1) ->
+            if p x then [(x, xs1)] else []
 
 {-| Parser that always fails -}
 empty : Parser result
@@ -122,7 +122,7 @@ choice =
 {-| Parses an optional element -}
 optional : Parser result -> result -> Parser result
 optional p x =
-    p `or` succeed x
+    or p (succeed x)
 
 {-| Parses zero or more occurences of a parser -}
 many : Parser result -> Parser (List result)
@@ -237,6 +237,6 @@ end =
     map (flip always) p
     |> andMap q
 
-infixl 4 `and`
-infixr 3 `or`
-infixl 4 `map`
+--infixl 4 and
+--infixr 3 or
+--infixl 4 map
