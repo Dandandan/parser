@@ -22,7 +22,7 @@ sign =
         plus =
             map (always 1) (symbol '+')
     in
-        optional (plus `or` minus) 1
+        optional (or plus minus) 1
 
 {-| Parse a digit -}
 digit : Parser Int

@@ -36,7 +36,7 @@ sign =
         min =
             map (always 1) (symbol '+')
     in
-        optional (plus `or` min) 1
+        optional (or plus min) 1
 
 {-| Parse an integer with optional sign -}
 integer : Parser Int
