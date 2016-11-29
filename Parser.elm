@@ -47,11 +47,11 @@ funP p =
 {-| For realizing otherwise inexpressible recursive grammars. For
 example, while
 
-    bbbba = (symbol 'a') `or` (symbol 'b' *> bbbba)
+    bbbba = or (symbol 'a') (symbol 'b' *> bbbba)
 
 will fail at runtime with a non-termination issue, the replacement
 
-    bbbba = (symbol 'a') `or` (symbol 'b' *> recursively (\() -> bbbba))
+    bbbba = or (symbol 'a') (symbol 'b' *> recursively (\() -> bbbba))
 
 is safe.
 -}
@@ -154,7 +154,7 @@ map f p =
 
 {-| Choice between two parsers
 
-      oneOrTwo = symbol '1' `or` symbol '2'
+      oneOrTwo = or (symbol '1') (symbol '2')
 -}
 or : Parser result -> Parser result -> Parser result
 or p q =
@@ -177,10 +177,11 @@ andMap q p =
         |> List.concat
 
 
-{-| Sequence two parsers (infix version)
+{-| Sequence two parsers
 
     type Date = Date Int Int Int
-    date = Date `map` year `and` month `and` day
+    date = and (and (map Date year) month) day
+
 -}
 and : Parser (result -> result2) -> Parser result -> Parser result2
 and p q =
@@ -190,11 +191,11 @@ and p q =
 {-| Sequence two parsers, but pass the result of the first parser to the second parser.
     This is useful for creating context sensitive parsers like XML.
 
-    tag = openTag
-        |> andThen (tagLiteral)
+    tag = tagLiteral 
+        |> andThen (openTag)
 -}
-andThen : Parser result -> (result -> Parser result2) -> Parser result2
-andThen p f =
+andThen : (result -> Parser result2) -> Parser result -> Parser result2
+andThen f p =
     Direct <| \xs ->
         funP p xs
         |> List.map (\(y, ys) -> funP (f y) ys)
